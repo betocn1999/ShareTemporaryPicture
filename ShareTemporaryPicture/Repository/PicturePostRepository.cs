@@ -13,18 +13,25 @@ namespace ShareTemporaryPicture.Repository
     {
         public PicturePostRepository(IConfiguration _configuration) : base(_configuration) { }
 
-        public async Task<CreatePicturePostResponse> CreatePicturePostAsync(CreatePicturePostRequestContentExtension request)
+        public async Task<CreatePicturePostResponse> CreatePicturePostAsync(CreatePicturePostRequestContentExtension request, string fileName, string accessKey, string deleteKey)
         {
-            string sql = "INSERT INTO picture_post (title, description, delete_key, created_date) VALUES (@title, @description, @delete_key, @created_date);" +
-                "SELECT delete_key FROM picture_post WHERE delete_key = @delete_key";
+            string sql = "INSERT INTO picture_post (title, description, file_name, access_key, delete_key, created_date) VALUES (@title, @description, @file_name, @access_key, @delete_key, @created_date);";
             using var conn = GetPostgresConnection();
             await conn.OpenAsync();
-            string resultDeleteKey = await conn.QueryFirstAsync<string>(sql, new { title = request.Title, description = request.Description, delete_key = Guid.NewGuid().ToString("N"), created_date = DateTime.UtcNow });
+            await conn.ExecuteAsync(sql, new { 
+                title = request.Title, 
+                description = request.Description,
+                file_name = fileName,
+                access_key = accessKey,
+                delete_key = deleteKey, 
+                created_date = DateTime.UtcNow 
+            });
             await conn.CloseAsync();
 
             return new CreatePicturePostResponse
             {
-                DeleteKey = resultDeleteKey,
+                DeleteKey = deleteKey,
+                AccessKey = accessKey
             };
         }
     }

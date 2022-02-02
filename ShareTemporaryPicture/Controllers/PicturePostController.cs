@@ -28,7 +28,7 @@ namespace ShareTemporaryPicture.Controllers
             {
                 var createPicturePostRequest = new CreatePicturePostRequest
                 {
-                    Content = JsonSerializer.Deserialize<CreatePicturePostRequestContentExtension>(content),
+                    Content = JsonSerializer.Deserialize<CreatePicturePostRequestContentExtension>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }),
                     File = file
                 };
 

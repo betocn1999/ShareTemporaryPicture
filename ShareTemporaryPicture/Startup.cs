@@ -31,6 +31,7 @@ namespace ShareTemporaryPicture
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers().AddNewtonsoftJson();
+
             services.AddLogging();
 
             services.AddTransient<IPicturePostService, PicturePostService>();

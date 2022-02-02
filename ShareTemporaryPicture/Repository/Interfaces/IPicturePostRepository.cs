@@ -6,6 +6,6 @@ namespace ShareTemporaryPicture.Repository.Interfaces
 {
     public interface IPicturePostRepository
     {
-        Task<CreatePicturePostResponse> CreatePicturePostAsync(CreatePicturePostRequestContentExtension request);
+        Task<CreatePicturePostResponse> CreatePicturePostAsync(CreatePicturePostRequestContentExtension request, string fileName, string accessKey, string deleteKey);
     }
 }

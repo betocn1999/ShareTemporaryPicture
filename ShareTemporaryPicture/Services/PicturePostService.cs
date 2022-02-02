@@ -7,28 +7,32 @@ using System.Threading.Tasks;
 using Amazon.S3;
 using Amazon.S3.Model;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
+using ShareTemporaryPicture.Models.Exceptions;
+using System;
 
 namespace ShareTemporaryPicture.Services
 {
-    public class PicturePostService : IPicturePostService
+    public class PicturePostService : S3BucketProcess, IPicturePostService
     {
         private readonly IPicturePostRepository _picturePostRepository;
-        public PicturePostService(IPicturePostRepository _picturePostRepository)
+        public PicturePostService(IPicturePostRepository _picturePostRepository, IConfiguration _configuration) : base(_configuration)
         {
             this._picturePostRepository = _picturePostRepository;
         }
 
-        // TODO: If one of them fails make a rollback.
-        // TODO: Extract the process of sending the image to another class.
+        // TODO: When I upload a file or insert the data to the database if one of them fails starts a rollback. 
         public async Task<CreatePicturePostResponse> CreatePicturePostAsync(CreatePicturePostRequest request)
         {
-            AmazonS3Client s3Client = new AmazonS3Client("AKIAZ2P5S5Z46VIDCPPU", "A2UtjpetEosmranRORrUDg1FzwW8fN5GIbTONDGo");
-            var model = new UploadPartRequest();
-            model.BucketName = "share-temporary-picture-u4n8fy4ajcfvj8f6";
-            model.Key = "images/dsadasdas.png";
-            model.InputStream = request.File.OpenReadStream();
-            await s3Client.UploadPartAsync(model);
-            return await _picturePostRepository.CreatePicturePostAsync(request.Content);
+            if (IsValidImageFile(request.File))
+            {
+                string fileName = await UploadFileAsync(request.File);
+                return await _picturePostRepository.CreatePicturePostAsync(request.Content, fileName, Guid.NewGuid().ToString("N"), Guid.NewGuid().ToString("N"));
+            }
+            else
+            {
+                throw new PicturePostServiceException("The file doesn't have a valid extension.");
+            }            
         }
     }
 }
